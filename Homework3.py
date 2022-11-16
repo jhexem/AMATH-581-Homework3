@@ -56,22 +56,22 @@ m = 64
 L = 10
 tvals = np.arange(0, 4+0.5, 0.5)
 xyvals = np.linspace(-L, L, m, endpoint=False)
+delta = xyvals[1] - xyvals[0]
 
 f = lambda x, y: np.exp((-2 * x * x) - (y * y / 20))   #define omega0, the initial condiiton vector for omega
 X, Y = np.meshgrid(xyvals, xyvals)
 omega0matrix = f(X, Y)
-omega0 = np.reshape(omega0matrix, m*m).T
+omega0 = np.reshape(omega0matrix, m*m)
 
 '''Create the A Matrix'''
 def Afunc(m, xyvals):
    n = m*m # total size of matrix
    delta = xyvals[1] - xyvals[0]
-   e1 = np.ones(n) # vector of ones
-   e2 = np.ones(n) * (-4)
+   e1 = np.ones(n) / (delta**2) # vector of ones
+   e2 = np.ones(n) * (-4) / (delta**2)
    e2[0] = 2
-   e2 = e2 / (delta * delta)   #divide by 2 * delta
-   Low1 = np.tile(np.concatenate((np.ones(m-1), [0])), (m,)) # Lower diagonal 1
-   Low2 = np.tile(np.concatenate(([1], np.zeros(m-1))), (m,)) #Lower diagonal 2
+   Low1 = np.tile(np.concatenate((np.ones(m-1), [0])), (m,)) / (delta**2) # Lower diagonal 1
+   Low2 = np.tile(np.concatenate(([1], np.zeros(m-1))), (m,)) / (delta**2) #Lower diagonal 2
                                        # Low2 is NOT on the second lower diagonal,
                                        # it is just the next lower diagonal we see
                                        # in the matrix.
@@ -108,7 +108,7 @@ def Cfunc(m, xyvals):
 
    diagindex = [-(m-1), -1, 1, m-1]   #choose the indices for the diagonals to go
    longdiags = np.ones(n) / (2 * dy)   #create arrays for the diagonals and divide by 2 * dy
-   otherdiag1 = np.tile(np.concatenate((np.zeros(m-1), [1])), (m,))   #create the diagonals with all zeros except one 1
+   otherdiag1 = np.tile(np.concatenate((np.zeros(m-1), [1])), (m,)) / (2 * dy)   #create the diagonals with all zeros except one 1
    otherdiag2 = np.roll(otherdiag1, 1)   #use the roll function to correctly place the 1's for the lower diagonal
    data = np.array([otherdiag2, longdiags * (-1), longdiags, otherdiag1 * (-1)])   #form the array that holds all values for each of the diagonals
 
@@ -117,6 +117,22 @@ def Cfunc(m, xyvals):
 
 C = Cfunc(m, xyvals)   #call the function that returns C
 A6 = B.todense()
+
+'''Testing plots for the Laplacian Matrix to fix errors'''
+testfunc = lambda x, y: np.sin(x) + np.cos(y)   #defines the function sin(x) + cos(y)
+testfunc2 = lambda x, y: -np.sin(x) - np.cos(y)   #defines the actual Laplacian of testfunc
+
+X, Y = np.meshgrid(xyvals, xyvals)
+
+newfunc = A@np.reshape(testfunc(X, Y), m*m)   #My Laplacian matrix A applied to sin(x) + cos(y)
+newfunc2 = np.reshape(testfunc2(X, Y), m*m)   #the actual Laplacian of sin(x) + cos(y)
+
+'''fig = plt.figure()    #plot the surface for either my calculated Laplacian or the actual Laplacian
+ax = plt.axes(projection='3d')
+surf = ax.plot_surface(X, Y, np.reshape(newfunc, (m, m)), cmap='magma')   #change newfunc to newfunc2 to check the difference between my output and the actual Laplacian
+ax.set_xlabel('x axis')
+ax.set_ylabel('y axis')
+plt.show()'''
 
 '''Discretizations of both Equations for Gaussian Elimination'''
 def GEdiscretized2(t, omega, A):   #solve for psi using equation 2
@@ -135,16 +151,10 @@ def GEsolve(v, tvals, omega0, A, B, C):  #solve the ODE for omegat
 solGE = GEsolve(v, tvals, omega0, A, B, C)   #call the function that used Gaussian Elimination to solve the ODE
 y_solGE = solGE.y.T   #variable for the solutions (transposed to make unstacking the solution easier)
 
-A7 = y_solGE
-
-def unstacksol(sol):   #unstacks the solution vector to obtain the 64x64 solution matrix
-   newsol = np.zeros((m, m))
-   for i in range(m):
-      newsol[i] = sol[m * i:m * (i+1)]
-   return newsol
+A7 = y_solGE   #the above is commented out because the incorrect A matrix was creating an infinite loop in the solver
 
 '''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
-   unstacked = unstacksol(y_solGE[i])   #unstack the solution vector at time i
+   unstacked = np.reshape(y_solGE[i], (m, m))   #unstack the solution vector at time i
 
    fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
    X, Y = np.meshgrid(xyvals, xyvals)
@@ -169,19 +179,11 @@ LUdecomp = scipy.sparse.linalg.splu(A)   #generates the LU decomposition
 solLU = LUsolve(v, tvals, omega0, A, B, C, LUdecomp)   #call the function that solves the ODE
 y_solLU = solLU.y.T   #variable for the solutions (transposed to make unstacking the solution easier)
 
-A8 = y_solLU
+A8 = y_solLU   #the above is commented out because the incorrect A matrix was creating an infinite loop in the solver
+A9 = np.reshape(y_solLU, (9, m, m))
 
 '''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
-   unstacked = unstacksol(y_solLU[i])   #unstack the solution vector at time i
-
-   fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for LU Decomposition
+   fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
    X, Y = np.meshgrid(xyvals, xyvals)
-   ax.contourf(X, Y, unstacked)
+   ax.contourf(X, Y, A9[i, :, :])
    plt.show()'''
-
-'''
-The plot for the solution for part c looks strange. Make sure it is correct.
-
-Why are all my contour plots for y_sol[0] through y_sol[8] the same? Am I implimenting the ODE correctly?
-This is happening for both Gaussian Elimination and LU Decomposition methods. The contour is not changing with time.
-'''
