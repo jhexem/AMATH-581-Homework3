@@ -35,19 +35,19 @@ T, X = np.meshgrid(sol1b.t, xpoints)
 surf = ax.plot_surface(T, X, A2, cmap='magma')
 plt.show()'''
 
-cfunc = lambda t: 1 + 2 * np.sin(5 * t) - np.heaviside(xpoints.T - 4, 0)   #define c(x,t)
+cfunc = lambda t: 1 + 2 * np.sin(5 * t) - np.heaviside(xpoints - 4, 0)   #define c(x,t)
 
 def newadvectionPDE(t, u, A, cfunc):   #redefine the ODE
-   u_t = cfunc(t) * A@(u.reshape(-1, 1))
-   return u_t.reshape(-1, 1)
+   u_t = cfunc(t) * (A@u)
+   return u_t
 
 sol1c = scipy.integrate.solve_ivp(lambda t, u: newadvectionPDE(t, u, Amatrix, cfunc), [0, 10], u0, t_eval=tpoints)   #solve ODE
 A3 = sol1c.y
 
-'''fig2 = plt.figure()    #plot the surface for Problem 1c
-ax2 = plt.axes(projection='3d')
+'''fig = plt.figure()    #plot the surface for Problem 1c
+ax = plt.axes(projection='3d')
 X, T = np.meshgrid(xpoints, sol1c.t)
-surf = ax2.plot_surface(X, T, A3.T, cmap='magma')
+surf = ax.plot_surface(X, T, A3.T, cmap='magma')
 plt.show()'''
 
 '''------Problem 2------'''
@@ -69,7 +69,7 @@ def Afunc(m, xyvals):
    e1 = np.ones(n) # vector of ones
    e2 = np.ones(n) * (-4)
    e2[0] = 2
-   e2 = e2 / (2 * delta)   #divide by 2 * delta
+   e2 = e2 / (delta * delta)   #divide by 2 * delta
    Low1 = np.tile(np.concatenate((np.ones(m-1), [0])), (m,)) # Lower diagonal 1
    Low2 = np.tile(np.concatenate(([1], np.zeros(m-1))), (m,)) #Lower diagonal 2
                                        # Low2 is NOT on the second lower diagonal,
@@ -135,6 +135,8 @@ def GEsolve(v, tvals, omega0, A, B, C):  #solve the ODE for omegat
 solGE = GEsolve(v, tvals, omega0, A, B, C)   #call the function that used Gaussian Elimination to solve the ODE
 y_solGE = solGE.y.T   #variable for the solutions (transposed to make unstacking the solution easier)
 
+A7 = y_solGE
+
 def unstacksol(sol):   #unstacks the solution vector to obtain the 64x64 solution matrix
    newsol = np.zeros((m, m))
    for i in range(m):
@@ -167,6 +169,8 @@ LUdecomp = scipy.sparse.linalg.splu(A)   #generates the LU decomposition
 solLU = LUsolve(v, tvals, omega0, A, B, C, LUdecomp)   #call the function that solves the ODE
 y_solLU = solLU.y.T   #variable for the solutions (transposed to make unstacking the solution easier)
 
+A8 = y_solLU
+
 '''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
    unstacked = unstacksol(y_solLU[i])   #unstack the solution vector at time i
 
@@ -175,7 +179,9 @@ y_solLU = solLU.y.T   #variable for the solutions (transposed to make unstacking
    ax.contourf(X, Y, unstacked)
    plt.show()'''
 
-'''The plot for the solution for part c looks strange. Make sure it is correct.
+'''
+The plot for the solution for part c looks strange. Make sure it is correct.
 
 Why are all my contour plots for y_sol[0] through y_sol[8] the same? Am I implimenting the ODE correctly?
-This is happening for both Gaussian Elimination and LU Decomposition methods'''
+This is happening for both Gaussian Elimination and LU Decomposition methods. The contour is not changing with time.
+'''
