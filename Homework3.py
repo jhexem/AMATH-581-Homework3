@@ -69,7 +69,7 @@ def Afunc(m, xyvals):
    delta = xyvals[1] - xyvals[0]
    e1 = np.ones(n) / (delta**2) # vector of ones
    e2 = np.ones(n) * (-4) / (delta**2)
-   e2[0] = 2
+   e2[0] = 2 / (delta**2)
    Low1 = np.tile(np.concatenate((np.ones(m-1), [0])), (m,)) / (delta**2) # Lower diagonal 1
    Low2 = np.tile(np.concatenate(([1], np.zeros(m-1))), (m,)) / (delta**2) #Lower diagonal 2
                                        # Low2 is NOT on the second lower diagonal,
@@ -187,3 +187,32 @@ A9 = np.reshape(y_solLU, (9, m, m))
    X, Y = np.meshgrid(xyvals, xyvals)
    ax.contourf(X, Y, A9[i, :, :])
    plt.show()'''
+   
+'''times = np.arange(0, 20+0.1, 0.1)
+
+sol = LUsolve(v, times, omega0, A, B, C, LUdecomp)
+y_sol = sol.y.T
+solmatrix = np.reshape(y_sol, (len(times), m, m))
+
+def frame(t):
+   time = np.where(times == t)
+   fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
+   X, Y = np.meshgrid(xyvals, xyvals)
+   ax.contourf(X, Y, solmatrix[time][0])
+   plt.title('Time Evolution of Vorticity at Time t={0:.1f}'.format(t))
+   plt.savefig('image{0}.png'.format(t), transparent=False, facecolor='white')
+   plt.close()
+
+import imageio
+
+for t in times:
+   frame(t)
+   
+frames = []
+for t in times:
+   pic = imageio.imread('image{0}.png'.format(t))
+   frames.append(pic)
+   
+imageio.mimsave('Problem2.gif', # output gif
+                frames,          # array of input frames
+                fps = 30)         # optional: frames per second'''
