@@ -182,11 +182,11 @@ y_solLU = solLU.y.T   #variable for the solutions (transposed to make unstacking
 A8 = y_solLU   #the above is commented out because the incorrect A matrix was creating an infinite loop in the solver
 A9 = np.reshape(y_solLU, (9, m, m))
 
-'''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
+for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
    fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
    X, Y = np.meshgrid(xyvals, xyvals)
    ax.contourf(X, Y, A9[i, :, :])
-   plt.show()'''
+   plt.show()
    
 '''times = np.arange(0, 10+0.1, 0.1)
 
