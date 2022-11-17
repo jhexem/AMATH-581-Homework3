@@ -188,7 +188,7 @@ for i in range(9):   #loop through all 9 solution vectors to unstack them and ma
    ax.contourf(X, Y, A9[i, :, :])
    plt.show()
    
-'''times = np.arange(0, 10+0.1, 0.1)
+'''times = np.arange(0, 20+0.1, 0.1)
 
 sol = LUsolve(v, times, omega0, A, B, C, LUdecomp)
 y_sol = sol.y.T
