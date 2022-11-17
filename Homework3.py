@@ -188,7 +188,7 @@ A9 = np.reshape(y_solLU, (9, m, m))
    ax.contourf(X, Y, A9[i, :, :])
    plt.show()'''
    
-'''times = np.arange(0, 20+0.1, 0.1)
+'''times = np.arange(0, 10+0.1, 0.1)
 
 sol = LUsolve(v, times, omega0, A, B, C, LUdecomp)
 y_sol = sol.y.T
