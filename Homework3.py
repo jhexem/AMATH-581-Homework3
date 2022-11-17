@@ -61,7 +61,7 @@ delta = xyvals[1] - xyvals[0]
 f = lambda x, y: np.exp((-2 * x * x) - (y * y / 20))   #define omega0, the initial condiiton vector for omega
 X, Y = np.meshgrid(xyvals, xyvals)
 omega0matrix = f(X, Y)
-omega0 = np.reshape(omega0matrix, m*m)
+omega0 = np.reshape(omega0matrix, m*m)   #just transposed this matrix before reshaping, but now the plot is sideways
 
 '''Create the A Matrix'''
 def Afunc(m, xyvals):
@@ -141,7 +141,7 @@ def GEdiscretized2(t, omega, A):   #solve for psi using equation 2
 
 def GEdiscretized1(t, omega, GEdiscretized2, A, B, C, v):   #solve for omegat using equation 1
    psi = GEdiscretized2(t, omega, A)   #get psi value
-   omegat = np.multiply(C@psi, B@omega) - np.multiply(B@psi, C@omega) + v * (A@omega)   #gets the value of omegat by implimenting the ODE
+   omegat = np.multiply(B@psi, C@omega) - np.multiply(C@psi, B@omega) + v * (A@omega)   #gets the value of omegat by implimenting the ODE
    return omegat
 
 def GEsolve(v, tvals, omega0, A, B, C):  #solve the ODE for omegat
@@ -153,13 +153,13 @@ y_solGE = solGE.y.T   #variable for the solutions (transposed to make unstacking
 
 A7 = y_solGE   #the above is commented out because the incorrect A matrix was creating an infinite loop in the solver
 
-'''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
+for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
    unstacked = np.reshape(y_solGE[i], (m, m))   #unstack the solution vector at time i
 
    fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
    X, Y = np.meshgrid(xyvals, xyvals)
    ax.contourf(X, Y, unstacked)
-   plt.show()'''
+   plt.show()
 
 '''Discretizations of both Equations for LU Decomposition'''
 def LUdiscretized2(t, omega, LUdecomp):   #solve for psi using equation 2
@@ -168,7 +168,7 @@ def LUdiscretized2(t, omega, LUdecomp):   #solve for psi using equation 2
 
 def LUdiscretized1(t, omega, LUdiscretized2, A, B, C, v, LUdecomp):   #solve for omegat using equation 1
    psi = LUdiscretized2(t, omega, LUdecomp)   #get psi value
-   omegat = np.multiply(C@psi, B@omega) - np.multiply(B@psi, C@omega) + v * (A@omega)   #gets the value of omegat by implimenting the ODE
+   omegat = -np.multiply(C@psi, B@omega) + np.multiply(B@psi, C@omega) + v * (A@omega)   #gets the value of omegat by implimenting the ODE
    return omegat
 
 def LUsolve(v, tvals, omega0, A, B, C, LUdecomp):  #solve the ODE for omegat
@@ -182,11 +182,11 @@ y_solLU = solLU.y.T   #variable for the solutions (transposed to make unstacking
 A8 = y_solLU   #the above is commented out because the incorrect A matrix was creating an infinite loop in the solver
 A9 = np.reshape(y_solLU, (9, m, m))
 
-'''for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
+for i in range(9):   #loop through all 9 solution vectors to unstack them and make a comtour plot of each one
    fig, ax = plt.subplots(1, 1)   #makes a contour plot of the matrix solution for Gaussian Elimination
    X, Y = np.meshgrid(xyvals, xyvals)
    ax.contourf(X, Y, A9[i, :, :])
-   plt.show()'''
+   plt.show()
    
 '''times = np.arange(0, 10+0.1, 0.1)
 
@@ -216,3 +216,6 @@ for t in times:
 imageio.mimsave('Problem2.gif', # output gif
                 frames,          # array of input frames
                 fps = 30)         # optional: frames per second'''
+                
+'''a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+print(a.reshape(a, 9))'''
